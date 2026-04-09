@@ -38,7 +38,7 @@ export function createScorePanel(elementId: string): ScorePanel {
       indicatorsHtml = `<ul class="score-panel__indicator-list">${rows}</ul>`;
     }
 
-    el.innerHTML = `
+    panel.innerHTML = `
       <div class="score-panel__header">
         <span class="score-panel__label">Liveability Score</span>
         <span class="score-panel__overall-score">${props.liveability_score.toFixed(1)}</span>
