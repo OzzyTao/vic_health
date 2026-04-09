@@ -1,0 +1,16 @@
+[database]
+dsn = "postgresql://postgres@localhost/observatory_2024"
+
+[bbox]
+min_lng = 144.87014
+min_lat = -37.75558
+max_lng = 144.90954
+max_lat = -37.72395
+
+[tables]
+geometry           = "boundaries.mb"
+indicators         = "indicators.indicators_mb"
+liveability_column = "urban_liveability_index"
+
+[output]
+path = "liveability-map/data/liveability.geojson"

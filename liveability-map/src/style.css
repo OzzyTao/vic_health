@@ -1,0 +1,110 @@
+/* Global styles for liveability map */
+
+/* Score Panel */
+.score-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.score-panel__label {
+  font-family: sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.score-panel__overall-score {
+  font-family: sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c7a2c;
+}
+
+.score-panel__indicator-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.score-panel__indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-family: sans-serif;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.score-panel__indicator:last-child {
+  border-bottom: none;
+}
+
+.score-panel__indicator-name {
+  color: #333;
+  text-transform: capitalize;
+}
+
+.score-panel__indicator-score {
+  font-weight: 600;
+  color: #444;
+}
+
+.score-panel__no-data {
+  font-family: sans-serif;
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Legend */
+.legend {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  min-width: 140px;
+}
+
+.legend__title {
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend__row:last-child {
+  margin-bottom: 0;
+}
+
+.legend__swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend__label {
+  color: #444;
+}

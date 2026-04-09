@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liveability Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #score-panel {
+        display: none;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 1000;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        padding: 16px;
+        min-width: 240px;
+        max-width: 320px;
+      }
+
+      #score-panel.visible {
+        display: block;
+      }
+
+      #error-banner {
+        display: none;
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1001;
+        background: #c0392b;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-family: sans-serif;
+      }
+
+      #error-banner.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="score-panel" aria-live="polite" aria-label="Score breakdown panel"></div>
+    <div id="error-banner" role="alert"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

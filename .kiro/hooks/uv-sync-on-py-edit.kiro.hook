@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "UV Sync on Python File Edit",
+  "description": "Analyzes Python file changes, updates pyproject.toml if needed, then runs uv sync",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Python file was just saved. Check if any imports or dependencies have changed that require updating pyproject.toml (e.g. new third-party packages added or removed). If so, update pyproject.toml accordingly. Then run `uv sync` to update the environment."
+  }
+}

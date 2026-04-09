@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Update README on Feature Implementation",
+  "description": "Automatically updates the README file whenever a spec task is marked as completed",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task has just been completed. Review the current README.md and update it to reflect any new features or functionality that was implemented. Keep the README accurate and up to date with what was just built, but don't overwrite sections unrelated to the completed feature."
+  }
+}

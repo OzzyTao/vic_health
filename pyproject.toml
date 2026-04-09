@@ -1,0 +1,17 @@
+[project]
+name = "vic-health"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "psycopg2-binary",
+    "hypothesis",
+    "pytest",
+]
+
+[project.scripts]
+vic-health-export = "vic_health.export_cli:main"
+
+[tool.uv]
+package = true
