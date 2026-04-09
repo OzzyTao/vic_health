@@ -17,6 +17,7 @@ export interface ScorePanel {
 export function createScorePanel(elementId: string): ScorePanel {
   const el = document.getElementById(elementId);
   if (!el) throw new Error(`ScorePanel: element #${elementId} not found`);
+  const panel = el;
 
   function show(props: MeshblockProperties): void {
     const indicators = props.sub_indicators ?? [];
@@ -47,12 +48,12 @@ export function createScorePanel(elementId: string): ScorePanel {
       </div>
     `;
 
-    el.classList.add('visible');
+    panel.classList.add('visible');
   }
 
   function hide(): void {
-    el.classList.remove('visible');
-    el.innerHTML = '';
+    panel.classList.remove('visible');
+    panel.innerHTML = '';
   }
 
   return { show, hide };
