@@ -13,4 +13,4 @@ indicators         = "indicators.indicators_mb"
 liveability_column = "urban_liveability_index"
 
 [output]
-path = "liveability-map/data/liveability.geojson"
+path = "liveability-map/public/data/liveability.geojson"
