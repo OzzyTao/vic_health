@@ -8,10 +8,17 @@ dependencies = [
     "psycopg2-binary",
     "hypothesis",
     "pytest",
+    "geopandas",
+    "sqlalchemy>=2.0.49",
+    "pyproj",
 ]
 
 [project.scripts]
 vic-health-export = "vic_health.export_cli:main"
+vic-health-gpkg2geojson = "vic_health.gpkg_to_geojson:main"
+
+[tool.setuptools]
+packages = ["vic_health"]
 
 [tool.uv]
 package = true

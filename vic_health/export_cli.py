@@ -7,7 +7,7 @@ from pathlib import Path
 
 from vic_health.explorer import connect
 from vic_health.extractor import ExtractionError, extract, validate_bbox
-from vic_health.exporter import export
+from vic_health.exporter import export, export_csv
 from vic_health.models import BoundingBox, TableConfig
 
 
@@ -55,6 +55,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Extract but do not write the output file — prints the feature count instead.",
+    )
+    parser.add_argument(
+        "--csv",
+        metavar="PATH",
+        default=None,
+        help=(
+            "Also write a CSV file. If omitted, defaults to the GeoJSON output path "
+            "with a .csv extension."
+        ),
+    )
+    parser.add_argument(
+        "--no-csv",
+        action="store_true",
+        help="Skip CSV output entirely.",
     )
     return parser
 
@@ -104,6 +118,11 @@ def main(argv: list[str] | None = None) -> int:
         conn.close()
 
     export(records, output_path, dry_run=args.dry_run)
+
+    if not args.no_csv:
+        csv_path = Path(args.csv) if args.csv else output_path.with_suffix(".csv")
+        export_csv(records, csv_path, dry_run=args.dry_run)
+
     return 0
 
 

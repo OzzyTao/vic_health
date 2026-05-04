@@ -1,5 +1,6 @@
 # Exporter: serialises MeshblockRecords into a GeoJSON FeatureCollection
 
+import csv
 import json
 import logging
 import re
@@ -109,3 +110,55 @@ def export(
         feature_count=feature_count,
         duplicates_removed=duplicates_removed,
     )
+
+
+def export_csv(
+    records: list[MeshblockRecord],
+    output_path: Path,
+    dry_run: bool = False,
+) -> None:
+    """
+    Write a flat CSV of meshblock records.
+
+    Columns: meshblock_id, liveability_score, then one column per sub-indicator
+    (named by the indicator's name). Sub-indicator columns are derived from the
+    first record that has sub-indicators; missing values for a given row are left blank.
+    """
+    # Collect all sub-indicator names in order of first appearance
+    indicator_names: list[str] = []
+    seen_names: set[str] = set()
+    for r in records:
+        for si in r.sub_indicators:
+            if si.name not in seen_names:
+                indicator_names.append(si.name)
+                seen_names.add(si.name)
+
+    fieldnames = ["meshblock_id", "liveability_score"] + indicator_names
+    feature_count = len(records)
+
+    if dry_run:
+        print(f"Dry run: {feature_count} row(s) would be written to CSV (no file created).")
+        return
+
+    if output_path.exists():
+        print(f"Warning: overwriting existing file: {output_path}", file=sys.stderr)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with output_path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for record in records:
+                row: dict = {
+                    "meshblock_id": record.meshblock_id,
+                    "liveability_score": record.liveability_score,
+                }
+                for si in record.sub_indicators:
+                    row[si.name] = si.score
+                writer.writerow(row)
+    except OSError as exc:
+        print(f"Error: failed to write {output_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Wrote {feature_count} row(s) to {output_path}")

@@ -70,6 +70,38 @@ Dry run (extract but don't write the file):
 uv run vic-health-export --dry-run
 ```
 
+### GeoPackage to GeoJSON Converter
+
+The project includes a converter that reads a GeoPackage file (`.gpkg`) and produces a flat GeoJSON FeatureCollection with all indicator×scenario columns as top-level properties. This is used to prepare data for the scenario comparison map.
+
+```python
+from vic_health.gpkg_to_geojson import convert_gpkg
+
+result = convert_gpkg(
+    "liveability-map/public/data/vichealth_niddrie.gpkg",
+    "liveability-map/public/data/scenarios.geojson",
+)
+print(f"Wrote {result.feature_count} features ({result.skipped_count} skipped)")
+```
+
+You can also run it from the command line:
+
+```bash
+uv run vic-health-gpkg2geojson
+```
+
+This defaults to reading `liveability-map/public/data/vichealth_niddrie.gpkg` and writing `liveability-map/public/data/scenarios.geojson`. Override with `--gpkg` and `--output`:
+
+```bash
+uv run vic-health-gpkg2geojson --gpkg path/to/file.gpkg --output path/to/output.geojson
+```
+
+The converter:
+- Reads the `vichealth_niddrie` table from the GeoPackage via `sqlite3`
+- Parses GeoPackage binary geometry (header + WKB) and reprojects to WGS 84
+- Preserves `mb_code` and all `{indicator}_{scenario}` / `{indicator}_diff_{scenario}` columns
+- Skips rows with unparseable geometry (logs a warning) and reports a skip count
+
 ### Running Tests
 
 ```bash
@@ -107,6 +139,30 @@ npm run dev
 ```
 
 Then open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Running Tests
+
+Run the TypeScript test suite (uses [Vitest](https://vitest.dev/) and [fast-check](https://fast-check.dev/) for property-based testing):
+
+```bash
+cd liveability-map
+npm test
+```
+
+### Scenario Comparison Map
+
+The map features a side-by-side scenario comparison view. Users can select one of eight liveability indicators and two of four planning scenarios (Original, Probable, Community, Liveability), then visually compare choropleth maps rendered with a shared colour scale.
+
+Key features:
+- **Side-by-side map panes** — two synchronised Leaflet maps, each showing the same indicator under a different scenario
+- **Indicator selector** — choose from 8 liveability indicators (defaults to Urban Liveability Index)
+- **Scenario selectors** — independent left/right scenario selection (defaults: Original vs Liveability)
+- **Shared colour scale** — identical values produce identical colours across both panes for fair comparison
+- **Shared legend** — single legend reflecting the currently selected indicator
+- **Click-to-inspect** — click any meshblock to see its indicator values and diff-from-original for the pane's scenario
+- **Pan/zoom sync** — panning or zooming one pane automatically syncs the other
+
+Data is sourced from `scenarios.geojson`, produced by the GeoPackage converter (see Part 1).
 
 ### Production Build
 

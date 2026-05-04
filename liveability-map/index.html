@@ -3,67 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Liveability Map</title>
+    <title>Liveability Map — Scenario Comparison</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html, body {
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-      }
-
-      #map {
-        width: 100vw;
-        height: 100vh;
-      }
-
-      #score-panel {
-        display: none;
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 1000;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-        padding: 16px;
-        min-width: 240px;
-        max-width: 320px;
-      }
-
-      #score-panel.visible {
-        display: block;
-      }
-
-      #error-banner {
-        display: none;
-        position: absolute;
-        top: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1001;
-        background: #c0392b;
-        color: #fff;
-        padding: 12px 20px;
-        border-radius: 6px;
-        font-family: sans-serif;
-      }
-
-      #error-banner.visible {
-        display: block;
-      }
-    </style>
   </head>
   <body>
-    <div id="map"></div>
-    <div id="score-panel" aria-live="polite" aria-label="Score breakdown panel"></div>
+    <!-- Error banner -->
     <div id="error-banner" role="alert"></div>
+
+    <!-- Toolbar: indicator + scenario selectors -->
+    <div id="toolbar" class="toolbar">
+      <div id="indicator-selector" class="toolbar__group"></div>
+      <div id="left-scenario-selector" class="toolbar__group"></div>
+      <div id="right-scenario-selector" class="toolbar__group"></div>
+    </div>
+
+    <!-- Side-by-side map panes -->
+    <div class="map-comparison">
+      <div class="map-pane">
+        <div class="map-pane__label" id="label-left">Original</div>
+        <div id="map-left" class="map-pane__map"></div>
+      </div>
+      <div class="map-pane">
+        <div class="map-pane__label" id="label-right">Liveability</div>
+        <div id="map-right" class="map-pane__map"></div>
+      </div>
+    </div>
+
+    <!-- Shared legend -->
+    <div id="legend" class="legend-container"></div>
+
+    <!-- Detail panel (click-to-inspect) -->
+    <div id="detail-panel" class="detail-panel" aria-live="polite" aria-label="Meshblock detail panel"></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

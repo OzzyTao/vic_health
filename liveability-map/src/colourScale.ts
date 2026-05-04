@@ -1,5 +1,7 @@
 // ColourScale — Task 3.1
 
+import type { ScenarioFeature } from './scenarioDataLoader';
+
 export interface ColourStop {
   value: number;
   colour: string;
@@ -12,9 +14,9 @@ export interface ColourScale {
   stops: ColourStop[];
 }
 
-// Brewer YlGn 5-stop sequential ramp: light yellow → dark green
-const RAMP: string[] = ['#ffffb2', '#addd8e', '#78c679', '#31a354', '#006837'];
-const MIDPOINT_COLOUR = '#78c679'; // index 2 of 5-stop ramp
+// Red → Orange → Yellow → Green ramp (higher = greener)
+const RAMP: string[] = ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641'];
+const MIDPOINT_COLOUR = '#ffffbf'; // index 2 of 5-stop ramp
 
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
@@ -82,4 +84,33 @@ export function buildColourScale(scores: number[]): ColourScale {
   }
 
   return { min, max, stops, getColour };
+}
+
+/**
+ * Build a colour scale for a single indicator across all scenarios.
+ *
+ * Collects every `{indicator}_{scenario}` value from all features and
+ * scenarios, filters out null/undefined, and delegates to `buildColourScale`
+ * so that the same value maps to the same colour regardless of scenario.
+ *
+ * Requirements: 6.1, 6.2, 6.3
+ */
+export function buildIndicatorScale(
+  features: ScenarioFeature[],
+  indicator: string,
+  scenarios: string[],
+): ColourScale {
+  const values: number[] = [];
+
+  for (const feature of features) {
+    for (const scenario of scenarios) {
+      const key = `${indicator}_${scenario}`;
+      const val = feature.properties[key];
+      if (val != null && typeof val === 'number' && Number.isFinite(val)) {
+        values.push(val);
+      }
+    }
+  }
+
+  return buildColourScale(values);
 }
