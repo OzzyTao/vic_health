@@ -1,4 +1,54 @@
-/* Global reset */
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+:root {
+  /* Surfaces */
+  --surface-canvas: #0b0f19;
+  --surface-header: #11162328;
+  --surface-card: #141a29;
+  --surface-card-raised: #1a2236;
+  --surface-glass: rgba(20, 26, 41, 0.78);
+  --surface-glass-light: rgba(255, 255, 255, 0.04);
+
+  /* Borders */
+  --border-subtle: rgba(148, 163, 196, 0.14);
+  --border-strong: rgba(148, 163, 196, 0.28);
+
+  /* Text */
+  --text-primary: #eef1f8;
+  --text-secondary: #9aa5bd;
+  --text-tertiary: #66708a;
+
+  /* Accents */
+  --accent-cyan: #38d4d4;
+  --accent-cyan-dim: rgba(56, 212, 212, 0.16);
+  --accent-magenta: #f45fb5;
+  --accent-magenta-dim: rgba(244, 95, 181, 0.18);
+  --accent-amber: #f5b942;
+
+  /* Data / semantic */
+  --positive: #4ade80;
+  --negative: #f87171;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --shadow-glow-cyan: 0 0 0 1px rgba(56, 212, 212, 0.25), 0 4px 20px rgba(56, 212, 212, 0.12);
+
+  /* Rhythm */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Type */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ==========================================================================
+   Reset & base
+   ========================================================================== */
 * {
   margin: 0;
   padding: 0;
@@ -9,39 +59,184 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* ── Error Banner ── */
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient background texture — a faint radial glow behind the whole app,
+   reinforcing depth without competing with the choropleth colours. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(56, 212, 212, 0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 100% 10%, rgba(244, 95, 181, 0.06), transparent 60%);
+}
+
+/* ==========================================================================
+   Loading indicator
+   ========================================================================== */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: var(--surface-canvas);
+  transition: opacity 0.3s ease;
+}
+
+.loading-indicator.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-indicator__mark {
+  font-size: 28px;
+  color: var(--accent-cyan);
+  animation: mark-pulse 1.6s ease-in-out infinite;
+}
+
+.loading-indicator__spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: loading-spin 0.8s linear infinite;
+}
+
+.loading-indicator__text {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mark-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Error banner
+   ========================================================================== */
 #error-banner {
   display: none;
   position: fixed;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2000;
-  background: #c0392b;
-  color: #fff;
+  z-index: 2500;
+  background: #401a1e;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fecaca;
   padding: 12px 20px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 14px;
   max-width: 90vw;
+  box-shadow: var(--shadow-md);
 }
 
 #error-banner.visible {
   display: block;
 }
 
+/* ==========================================================================
+   App header
+   ========================================================================== */
+.app-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #121826 0%, #0f1420 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+body.app-ready .app-header {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-header__mark {
+  font-size: 20px;
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 6px rgba(56, 212, 212, 0.5));
+}
+
+.app-header__title-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.app-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.app-header__subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
 /* ── Toolbar ── */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 8px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-  z-index: 1000;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-left: auto;
+}
+
+.toolbar__divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-subtle);
 }
 
 .toolbar__group {
@@ -53,105 +248,259 @@ html, body {
 .selector {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .selector__label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  color: #495057;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
   white-space: nowrap;
 }
 
 .selector__select {
+  font-family: var(--font-ui);
   font-size: 13px;
-  padding: 4px 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background: #fff;
-  color: #212529;
+  font-weight: 500;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-primary);
   cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239aa5bd' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 26px;
+}
+
+.selector__select:hover {
+  border-color: var(--accent-cyan);
+  background-color: var(--surface-card-raised);
 }
 
 .selector__select:focus {
-  outline: 2px solid #4dabf7;
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px var(--accent-cyan-dim);
 }
 
-/* ── Side-by-side map panes ── */
+.selector__select option {
+  background: var(--surface-card-raised);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   App body: map panes + docked sidebar
+   ========================================================================== */
+.app-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
+}
+
+body.app-ready .app-body {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .map-comparison {
   display: flex;
   flex: 1;
-  height: calc(100vh - 45px); /* viewport minus toolbar height */
-  min-height: 0;
+  min-width: 0;
+  gap: 12px;
 }
 
 .map-pane {
   position: relative;
   flex: 1 1 50%;
   min-width: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  background: var(--surface-card);
 }
 
-.map-pane + .map-pane {
-  border-left: 2px solid #dee2e6;
+/* Sidebar is a normal flex sibling of the map — laid out beside it, never
+   on top of it, so it can never intercept a click meant for a meshblock. */
+.sidebar {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Stack panes vertically and drop the sidebar below on narrow screens —
+   side-by-side becomes too cramped to compare below ~900px. */
+@media (max-width: 900px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .toolbar {
+    gap: 8px 12px;
+    margin-left: 0;
+  }
+
+  .app-body {
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+    overflow-y: auto;
+  }
+
+  .map-comparison {
+    flex-direction: column;
+    gap: 8px;
+    flex: none;
+  }
+
+  /* flex-basis (not height) governs size on the main axis once the parent
+     switches to flex-direction: column — reset it explicitly, or the 50%
+     basis from the desktop side-by-side layout wins and collapses both
+     panes against the comparison container's own (content-derived) height. */
+  .map-pane {
+    flex: 0 0 45vh;
+  }
+
+  .sidebar {
+    flex: none;
+  }
 }
 
 .map-pane__map {
   width: 100%;
   height: 100%;
+  background: var(--surface-card);
+}
+
+/* Meshblock polygons hit-test on fill only, not stroke — otherwise the
+   widened border on a selected/hovered polygon steals clicks meant for a
+   neighbouring polygon along their shared edge, forcing users to click a
+   blank area first to deselect before switching regions. Selector matches
+   Leaflet's own `.leaflet-pane > svg path.leaflet-interactive` specificity
+   (leaflet.css) so it isn't overridden by cascade order. */
+.leaflet-pane > svg path.leaflet-interactive {
+  pointer-events: fill;
+}
+
+/* CARTO's dark basemap is very low-contrast by default — boost brightness
+   so street/suburb labels stay legible under the choropleth overlay. */
+.map-pane__map .leaflet-tile-pane {
+  filter: brightness(1.35) contrast(1.05);
+}
+
+/* Leaflet controls — restyle to match the dark shell */
+.leaflet-control-zoom a {
+  background: var(--surface-glass) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-subtle) !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--surface-card-raised) !important;
+  color: var(--accent-cyan) !important;
+}
+
+.leaflet-control-attribution {
+  background: var(--surface-glass) !important;
+  color: var(--text-tertiary) !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-secondary) !important;
 }
 
 /* Scenario label overlay */
 .map-pane__label {
   position: absolute;
-  top: 10px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 4px 14px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(10px);
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
   pointer-events: none;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
-/* ── Shared Legend ── */
+.map-pane__label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 6px var(--accent-cyan);
+}
+
+.map-pane:last-child .map-pane__label::before {
+  background: var(--accent-magenta);
+  box-shadow: 0 0 6px var(--accent-magenta);
+}
+
+/* ==========================================================================
+   Shared legend — docked in the sidebar, not overlaid on the map
+   ========================================================================== */
 .legend-container {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1500;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.3s;
+}
+
+body.app-ready .legend-container {
+  opacity: 1;
 }
 
 .legend {
-  background: white;
-  padding: 10px 14px;
-  border-radius: 6px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   font-size: 12px;
   line-height: 1.4;
-  min-width: 140px;
 }
 
 .legend__title {
-  font-weight: 600;
-  font-size: 12px;
-  color: #333;
-  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
 }
 
 .legend__row {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .legend__row:last-child {
@@ -160,82 +509,114 @@ html, body {
 
 .legend__swatch {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  margin-right: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: 10px;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .legend__label {
-  color: #444;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-secondary);
 }
 
-/* ── Detail Panel ── */
+/* ==========================================================================
+   Detail panel — docked in the sidebar, not overlaid on the map
+   ========================================================================== */
 .detail-panel {
   display: none;
-  position: fixed;
-  top: 60px;
-  right: 16px;
-  z-index: 1500;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  padding: 16px;
-  min-width: 280px;
-  max-width: 360px;
-  max-height: calc(100vh - 100px);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 18px;
+  flex-shrink: 0;
   overflow-y: auto;
 }
 
 .detail-panel.visible {
   display: block;
+  animation: panel-in 0.2s ease;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .detail-panel__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-panel__close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.detail-panel__close:hover {
+  color: var(--text-primary);
+  background: var(--surface-glass-light);
 }
 
 .detail-panel__mb-code {
-  font-size: 14px;
-  font-weight: 700;
-  color: #333;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  letter-spacing: 0.01em;
 }
 
 .detail-panel__scenario {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6c757d;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
 }
 
 .detail-panel__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .detail-panel__th {
   text-align: left;
   font-weight: 600;
-  color: #555;
+  color: var(--text-tertiary);
   padding: 4px 6px;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 11px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .detail-panel__row td {
-  padding: 4px 6px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .detail-panel__row:last-child td {
@@ -243,29 +624,31 @@ html, body {
 }
 
 .detail-panel__indicator-name {
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .detail-panel__indicator-value {
+  font-family: var(--font-mono);
   font-weight: 600;
-  color: #444;
+  color: var(--text-primary);
   text-align: right;
 }
 
 .detail-panel__diff-value {
+  font-family: var(--font-mono);
   text-align: right;
-  color: #666;
+  color: var(--text-tertiary);
 }
 
 .detail-panel__diff--positive {
-  color: #2e7d32;
+  color: var(--positive);
 }
 
 .detail-panel__diff--negative {
-  color: #c62828;
+  color: var(--negative);
 }
 
 .detail-panel__na {
-  color: #aaa;
+  color: var(--text-tertiary);
   font-style: italic;
 }

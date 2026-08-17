@@ -78,7 +78,7 @@ The project includes a converter that reads a GeoPackage file (`.gpkg`) and prod
 from vic_health.gpkg_to_geojson import convert_gpkg
 
 result = convert_gpkg(
-    "liveability-map/public/data/vichealth_niddrie.gpkg",
+    "liveability-map/public/data/vichealth_bendigo.gpkg",
     "liveability-map/public/data/scenarios.geojson",
 )
 print(f"Wrote {result.feature_count} features ({result.skipped_count} skipped)")
@@ -90,14 +90,14 @@ You can also run it from the command line:
 uv run vic-health-gpkg2geojson
 ```
 
-This defaults to reading `liveability-map/public/data/vichealth_niddrie.gpkg` and writing `liveability-map/public/data/scenarios.geojson`. Override with `--gpkg` and `--output`:
+This defaults to reading `liveability-map/public/data/vichealth_bendigo.gpkg` and writing `liveability-map/public/data/scenarios.geojson`. Override with `--gpkg` and `--output`:
 
 ```bash
 uv run vic-health-gpkg2geojson --gpkg path/to/file.gpkg --output path/to/output.geojson
 ```
 
 The converter:
-- Reads the `vichealth_niddrie` table from the GeoPackage via `sqlite3`
+- Reads the single features table declared in the GeoPackage's `gpkg_contents` via `sqlite3`
 - Parses GeoPackage binary geometry (header + WKB) and reprojects to WGS 84
 - Preserves `mb_code` and all `{indicator}_{scenario}` / `{indicator}_diff_{scenario}` columns
 - Skips rows with unparseable geometry (logs a warning) and reports a skip count

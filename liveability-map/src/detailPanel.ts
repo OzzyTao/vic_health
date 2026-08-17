@@ -32,6 +32,7 @@ export interface DetailPanelData {
 export interface DetailPanel {
   show(data: DetailPanelData): void;
   hide(): void;
+  onClose(handler: () => void): void;
 }
 
 /**
@@ -81,6 +82,8 @@ export function createDetailPanel(elementId: string): DetailPanel {
   if (!el) throw new Error(`DetailPanel: element #${elementId} not found`);
   const panel = el;
 
+  let closeHandler: (() => void) | null = null;
+
   function show(data: DetailPanelData): void {
     const scenarioName = escapeHtml(scenarioLabel(data.scenario));
 
@@ -103,6 +106,7 @@ export function createDetailPanel(elementId: string): DetailPanel {
       <div class="detail-panel__header">
         <span class="detail-panel__mb-code">MB ${escapeHtml(String(data.mb_code))}</span>
         <span class="detail-panel__scenario">${scenarioName}</span>
+        <button type="button" class="detail-panel__close" aria-label="Close">&times;</button>
       </div>
       <table class="detail-panel__table" role="table">
         <thead>
@@ -116,6 +120,10 @@ export function createDetailPanel(elementId: string): DetailPanel {
       </table>
     `;
 
+    panel.querySelector('.detail-panel__close')?.addEventListener('click', () => {
+      closeHandler?.();
+    });
+
     panel.classList.add('visible');
   }
 
@@ -124,7 +132,11 @@ export function createDetailPanel(elementId: string): DetailPanel {
     panel.innerHTML = '';
   }
 
-  return { show, hide };
+  function onClose(handler: () => void): void {
+    closeHandler = handler;
+  }
+
+  return { show, hide, onClose };
 }
 
 /** Format a diff value with +/− sign, or "—" if null. */

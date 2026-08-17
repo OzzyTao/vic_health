@@ -47,18 +47,18 @@ export interface ComparisonMap {
   clearSelection(): void;
 }
 
-const MISSING_COLOUR = '#cccccc';
+const MISSING_COLOUR = '#3a4256';
 
 const SELECTED_STYLE: L.PathOptions = {
   weight: 3,
-  color: '#e040fb',
+  color: '#f45fb5',
   opacity: 1,
   fillOpacity: 0.9,
 };
 
 const HOVER_STYLE: L.PathOptions = {
   weight: 2,
-  color: '#333',
+  color: '#38d4d4',
   opacity: 1,
 };
 
@@ -79,7 +79,7 @@ export function createMapPane(): MapPane {
   function init(containerId: string): void {
     map = L.map(containerId);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
       maxZoom: 19,
@@ -134,9 +134,11 @@ export function createMapPane(): MapPane {
 
         return {
           fillColor,
-          fillOpacity: 0.75,
-          color: '#555',
-          weight: 0.5,
+          // Left translucent enough that street names and suburb labels on
+          // the basemap stay legible underneath the choropleth.
+          fillOpacity: 0.62,
+          color: 'rgba(11, 15, 25, 0.7)',
+          weight: 0.6,
           opacity: 1,
         };
       },

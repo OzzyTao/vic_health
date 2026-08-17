@@ -1,9 +1,9 @@
 """Convert a GeoPackage file to a flat GeoJSON FeatureCollection.
 
-Reads the ``vichealth_niddrie`` table from a GeoPackage, parses the binary
-geometry (GeoPackage header + WKB), reprojects from the source CRS to WGS 84,
-and writes a GeoJSON file with ``mb_code`` and all indicator/scenario columns
-as flat properties.
+Reads the features table declared in a GeoPackage's ``gpkg_contents``,
+parses the binary geometry (GeoPackage header + WKB), reprojects from the
+source CRS to WGS 84, and writes a GeoJSON file with ``mb_code`` and all
+indicator/scenario columns as flat properties.
 """
 
 from __future__ import annotations
@@ -166,7 +166,34 @@ def _parse_gpkg_geometry(
 # ---------------------------------------------------------------------------
 
 
-def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionResult:
+def _detect_features_table(conn: sqlite3.Connection) -> str:
+    """Find the single ``features`` table declared in ``gpkg_contents``.
+
+    Raises ``ValueError`` if there isn't exactly one.
+    """
+    rows = conn.execute(
+        "SELECT table_name FROM gpkg_contents WHERE data_type = 'features'"
+    ).fetchall()
+    if len(rows) != 1:
+        raise ValueError(
+            f"Expected exactly one features table in gpkg_contents, found {len(rows)}"
+        )
+    return rows[0]["table_name"]
+
+
+def _centroid(rings: list[list[list[float]]]) -> tuple[float, float]:
+    """Compute the centroid of a polygon's outer ring as ``(lng, lat)``."""
+    outer_ring = rings[0]
+    lngs = [pt[0] for pt in outer_ring]
+    lats = [pt[1] for pt in outer_ring]
+    return sum(lngs) / len(lngs), sum(lats) / len(lats)
+
+
+def convert_gpkg(
+    gpkg_path: str | Path,
+    output_path: str | Path,
+    bbox: tuple[float, float, float, float] | None = None,
+) -> ConversionResult:
     """Convert a GeoPackage to a flat GeoJSON FeatureCollection.
 
     Parameters
@@ -175,6 +202,10 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
         Path to the ``.gpkg`` file.
     output_path:
         Destination path for the GeoJSON output.
+    bbox:
+        Optional ``(min_lng, min_lat, max_lng, max_lat)`` in WGS 84. When
+        given, only features whose centroid falls inside the box are kept —
+        useful when a source table spans multiple disjoint regions.
 
     Returns
     -------
@@ -187,15 +218,18 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
     conn = sqlite3.connect(str(gpkg_path))
     conn.row_factory = sqlite3.Row
 
+    table_name = _detect_features_table(conn)
+
     # Identify the geometry column from GeoPackage metadata.
     meta_rows = conn.execute(
         "SELECT column_name, srs_id FROM gpkg_geometry_columns "
-        "WHERE table_name = 'vichealth_niddrie'"
+        "WHERE table_name = ?",
+        (table_name,),
     ).fetchall()
     if not meta_rows:
         conn.close()
         raise ValueError(
-            "No geometry column metadata found for table 'vichealth_niddrie'"
+            f"No geometry column metadata found for table '{table_name}'"
         )
 
     geom_col = meta_rows[0]["column_name"]
@@ -209,7 +243,7 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
         )
 
     # Discover all non-geometry, non-fid columns.
-    col_info = conn.execute("PRAGMA table_info(vichealth_niddrie)").fetchall()
+    col_info = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
     property_columns = [
         row["name"]
         for row in col_info
@@ -217,7 +251,7 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
     ]
 
     # Fetch all rows.
-    rows = conn.execute("SELECT * FROM vichealth_niddrie").fetchall()
+    rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
     conn.close()
 
     features: list[dict] = []
@@ -239,6 +273,12 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
             )
             skipped += 1
             continue
+
+        if bbox is not None:
+            lng, lat = _centroid(geometry["coordinates"])
+            min_lng, min_lat, max_lng, max_lat = bbox
+            if not (min_lng <= lng <= max_lng and min_lat <= lat <= max_lat):
+                continue
 
         properties: dict = {}
         for col in property_columns:
@@ -272,7 +312,7 @@ def convert_gpkg(gpkg_path: str | Path, output_path: str | Path) -> ConversionRe
 # CLI entry point
 # ---------------------------------------------------------------------------
 
-_DEFAULT_GPKG = "liveability-map/public/data/vichealth_niddrie.gpkg"
+_DEFAULT_GPKG = "liveability-map/public/data/vichealth_bendigo.gpkg"
 _DEFAULT_OUTPUT = "liveability-map/public/data/scenarios.geojson"
 
 
@@ -297,6 +337,16 @@ def main(argv: list[str] | None = None) -> int:
         default=_DEFAULT_OUTPUT,
         help=f"Destination path for the GeoJSON output (default: {_DEFAULT_OUTPUT}).",
     )
+    parser.add_argument(
+        "--bbox",
+        metavar="MIN_LNG,MIN_LAT,MAX_LNG,MAX_LAT",
+        default=None,
+        help=(
+            "Keep only features whose centroid falls within this WGS 84 "
+            "bounding box. Useful when the source table spans multiple "
+            "disjoint regions."
+        ),
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -306,8 +356,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Error: GeoPackage not found: {gpkg_path}", file=sys.stderr)
         return 1
 
+    bbox: tuple[float, float, float, float] | None = None
+    if args.bbox is not None:
+        try:
+            parts = [float(p) for p in args.bbox.split(",")]
+        except ValueError:
+            print(f"Error: invalid --bbox value: {args.bbox}", file=sys.stderr)
+            return 1
+        if len(parts) != 4:
+            print(
+                f"Error: --bbox requires 4 comma-separated values, got {len(parts)}",
+                file=sys.stderr,
+            )
+            return 1
+        bbox = (parts[0], parts[1], parts[2], parts[3])
+
     try:
-        result = convert_gpkg(gpkg_path, args.output)
+        result = convert_gpkg(gpkg_path, args.output, bbox=bbox)
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
