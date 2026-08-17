@@ -22,9 +22,13 @@ const DEFAULT_RIGHT_SCENARIO = 'liveability';
 
 async function init(): Promise<void> {
   const errorBanner = document.getElementById('error-banner');
+  const loadingIndicator = document.getElementById('loading-indicator');
 
   // ── Load data ──
   const result = await loadScenarioData(DATA_URL);
+
+  loadingIndicator?.classList.add('hidden');
+  document.body.classList.add('app-ready');
 
   if (result.error) {
     if (errorBanner) {
@@ -123,6 +127,20 @@ async function init(): Promise<void> {
   comparisonMap.onBackgroundClick(() => {
     comparisonMap.clearSelection();
     detailPanel.hide();
+  });
+
+  // ── Wire detail panel close button ──
+  detailPanel.onClose(() => {
+    comparisonMap.clearSelection();
+    detailPanel.hide();
+  });
+
+  // ── Wire Escape key → hide detail panel ──
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      comparisonMap.clearSelection();
+      detailPanel.hide();
+    }
   });
 }
 
